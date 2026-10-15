@@ -1,6 +1,7 @@
 #!/bin/sh
 set -eu
 
-ip route replace 172.30.30.0/24 via 172.30.20.2
+prefix=${NETWORK_PREFIX:-172.30}
+ip route replace "$prefix.30.0/24" via "$prefix.20.2"
 
 exec "$@"

@@ -7,11 +7,13 @@ services:
       net.ipv4.ip_forward: "1"
     networks:
       externa:
-        ipv4_address: 172.30.10.2
+        ipv4_address: ${NETWORK_PREFIX:-172.30}.10.2
       dmz:
-        ipv4_address: 172.30.20.2
+        ipv4_address: ${NETWORK_PREFIX:-172.30}.20.2
       domestica:
-        ipv4_address: 172.30.30.2
+        ipv4_address: ${NETWORK_PREFIX:-172.30}.30.2
+    environment:
+      NETWORK_PREFIX: ${NETWORK_PREFIX:-172.30}
 
   cliente:
     build: ./cliente
@@ -21,7 +23,9 @@ services:
     command: ["tail", "-f", "/dev/null"]
     networks:
       externa:
-        ipv4_address: 172.30.10.10
+        ipv4_address: ${NETWORK_PREFIX:-172.30}.10.10
+    environment:
+      NETWORK_PREFIX: ${NETWORK_PREFIX:-172.30}
 
   nas:
     build: ./nas
@@ -33,27 +37,29 @@ services:
       - ./nas/index.html:/usr/share/nginx/html/index.html:ro
     networks:
       dmz:
-        ipv4_address: 172.30.20.10
+        ipv4_address: ${NETWORK_PREFIX:-172.30}.20.10
+    environment:
+      NETWORK_PREFIX: ${NETWORK_PREFIX:-172.30}
 
   computador-pessoal:
     build: ./computador-pessoal
     networks:
       domestica:
-        ipv4_address: 172.30.30.10
+        ipv4_address: ${NETWORK_PREFIX:-172.30}.30.10
 
 networks:
   externa:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.30.10.0/24
+        - subnet: ${NETWORK_PREFIX:-172.30}.10.0/24
   dmz:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.30.20.0/24
+        - subnet: ${NETWORK_PREFIX:-172.30}.20.0/24
   domestica:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.30.30.0/24
+        - subnet: ${NETWORK_PREFIX:-172.30}.30.0/24

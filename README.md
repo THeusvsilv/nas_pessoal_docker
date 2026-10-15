@@ -105,7 +105,7 @@ Não há portas Docker publicadas no host no `compose.yaml`. O cliente acessa o 
 - Docker Engine ou Docker Desktop em execução;
 - suporte ao comando `docker compose` (Compose v2);
 - acesso à Internet na primeira construção, para baixar imagens e pacotes Alpine;
-- shell compatível com `sh` para executar `tests/validar.sh` (Linux, WSL ou ambiente equivalente). No PowerShell, os comandos Docker individuais podem ser executados normalmente, mas o script `.sh` requer um shell Unix;
+- shell compatível com `sh` para executar `tests/validar.sh` (Linux, WSL ou ambiente equivalente). No PowerShell, use `wsl sh ./tests/validar.sh` ou execute os comandos Docker manualmente;
 - privilégios suficientes para executar containers com `NET_ADMIN` no firewall, no cliente e no NAS. No cliente, essa capacidade não representa um requisito de produção: é o mecanismo explícito usado neste laboratório para impedir a dependência do gateway Docker.
 
 Não é necessário instalar nginx, iptables ou netcat no host: eles são fornecidos pelos containers.
@@ -164,6 +164,22 @@ Depois da revisão, o responsável pelo repositório pode criar o commit conform
 O arquivo `tests/validar.sh` executa os casos acima e verifica também os estados `running`, a existência de `nc`, as rotas, a porta não publicada 81 e as tabelas `filter` e `nat`.
 
 O cliente instala explicitamente `172.30.20.0/24 via 172.30.10.2` e `172.30.30.0/24 via 172.30.10.2` no entrypoint. Isso é deliberado: sem `NET_ADMIN`, ele dependeria do gateway Docker e poderia alcançar outras redes sem passar pela política do firewall. O NAS instala a rota doméstica via `172.30.20.2`. O teste confirma as rotas com `ip route get`, além de inspecionar a política `INPUT DROP` para que a verificação da porta 81 não dependa da ausência de um serviço.
+
+### Validação automatizada
+
+Na raiz do projeto, execute:
+
+```sh
+sh ./tests/validar.sh
+```
+
+O script usa somente `docker compose`, valida a configuração, verifica conflitos com redes Docker existentes antes do `up` e remove os containers ao terminar. Ele não remove redes automaticamente. Para escolher outro prefixo `/16` simples, informe o mesmo valor nos três octetos iniciais, por exemplo:
+
+```sh
+NETWORK_PREFIX=172.31 sh ./tests/validar.sh
+```
+
+O override altera consistentemente as três sub-redes, endereços fixos, rotas, regras e as verificações. O valor deve ser um prefixo IPv4 no formato `A.B`; a rede correspondente será `A.B.10.0/24`, `A.B.20.0/24` e `A.B.30.0/24`.
 
 Assim, os resultados acima são **comportamentos esperados pela configuração**, não resultados efetivamente testados neste documento. Para transformá-los em evidência, execute `tests/validar.sh` em um ambiente Docker disponível e preserve sua saída. Uma verificação manual equivalente para NAT é:
 
