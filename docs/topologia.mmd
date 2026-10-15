@@ -1,0 +1,22 @@
+flowchart LR
+    C[Cliente<br/>172.30.10.10]
+    F[Firewall<br/>172.30.10.2 / 172.30.20.2 / 172.30.30.2<br/>DNAT + MASQUERADE<br/>FORWARD DROP]
+    N[NAS nginx<br/>172.30.20.10:80]
+    P[Computador pessoal<br/>172.30.30.10:8080]
+
+    subgraph externa[externa - 172.30.10.0/24]
+        C
+    end
+    subgraph dmz[dmz - 172.30.20.0/24]
+        N
+    end
+    subgraph domestica[domestica - 172.30.30.0/24]
+        P
+    end
+
+    C -->|TCP/80 permitido| F
+    F -->|DNAT para NAS| N
+    N -.->|resposta HTTP via conntrack/MASQUERADE| F
+    F -.->|retorno permitido| C
+    F -.->|externa → doméstica: bloqueado| P
+    N -.->|DMZ → doméstica: bloqueado| F
