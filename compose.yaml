@@ -1,0 +1,59 @@
+services:
+  firewall:
+    build: ./firewall
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      net.ipv4.ip_forward: "1"
+    networks:
+      externa:
+        ipv4_address: 172.30.10.2
+      dmz:
+        ipv4_address: 172.30.20.2
+      domestica:
+        ipv4_address: 172.30.30.2
+
+  cliente:
+    build: ./cliente
+    cap_add:
+      - NET_ADMIN
+    entrypoint: ["/usr/local/bin/cliente-entrypoint.sh"]
+    command: ["tail", "-f", "/dev/null"]
+    networks:
+      externa:
+        ipv4_address: 172.30.10.10
+
+  nas:
+    build: ./nas
+    cap_add:
+      - NET_ADMIN
+    entrypoint: ["/usr/local/bin/nas-entrypoint.sh"]
+    command: ["nginx", "-g", "daemon off;"]
+    volumes:
+      - ./nas/index.html:/usr/share/nginx/html/index.html:ro
+    networks:
+      dmz:
+        ipv4_address: 172.30.20.10
+
+  computador-pessoal:
+    build: ./computador-pessoal
+    networks:
+      domestica:
+        ipv4_address: 172.30.30.10
+
+networks:
+  externa:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.10.0/24
+  dmz:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.20.0/24
+  domestica:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.30.0/24
