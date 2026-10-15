@@ -1,0 +1,9 @@
+# Estado e artefatos locais
+.env
+.env.*
+*.log
+*.pid
+
+# Dados que não devem ser versionados
+nas/data/
+nas/cache/
